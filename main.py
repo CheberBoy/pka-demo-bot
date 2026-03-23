@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from aiogram.types import BotCommand
 from create_bot import bot, dp
 from db.database import init_db
 from utils.scheduler import setup_scheduler
@@ -10,6 +11,12 @@ logging.basicConfig(level=logging.INFO)
 async def main():
     # Инициализировать БД
     await init_db()
+
+    # Зарегистрировать команды — появятся в меню (≡) слева внизу
+    await bot.set_my_commands([
+        BotCommand(command="book", description="📅 Записаться"),
+        BotCommand(command="contacts", description="📞 Контакты"),
+    ])
 
     # Подключить роутеры
     dp.include_router(start.router)

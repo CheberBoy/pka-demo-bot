@@ -1,8 +1,7 @@
 from aiogram import Router
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from config import SALON_NAME, SALON_PHONE
-from keyboards.main_kb import get_main_keyboard
 
 router = Router()
 
@@ -10,12 +9,11 @@ router = Router()
 async def cmd_start(message: Message):
     await message.answer(
         f"👋 Добро пожаловать в {SALON_NAME}!\n\n"
-        f"Я ваш AI-администратор. Работаю 24/7.\n\n"
-        f"Выберите что вас интересует:",
-        reply_markup=get_main_keyboard()
+        f"Я Айя, ваш AI-администратор. Работаю 24/7.\n\n"
+        f"Нажмите кнопку меню (≡) слева внизу, чтобы записаться или задать вопрос прямо здесь."
     )
 
-@router.message(lambda m: m.text == "📞 Контакты")
+@router.message(Command("contacts"))
 async def contacts(message: Message):
     await message.answer(
         f"📞 Телефон: {SALON_PHONE}\n"

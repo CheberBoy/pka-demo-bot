@@ -1,10 +1,10 @@
 from aiogram import Router, F
+from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram import Bot
 from config import ADMIN_CHAT_ID, SALON_NAME
-from keyboards.main_kb import get_main_keyboard
 from keyboards.booking_kb import (
     get_services_keyboard, get_masters_keyboard,
     get_dates_keyboard, get_times_keyboard
@@ -21,7 +21,7 @@ class BookingState(StatesGroup):
     entering_name = State()
 
 # ── ВХОД В ЗАПИСЬ ────────────────────────────────────────────
-@router.message(F.text == "📅 Записаться")
+@router.message(Command("book"))
 async def start_booking(message: Message, state: FSMContext):
     await state.set_state(BookingState.choosing_service)
     await message.answer("Выберите услугу:", reply_markup=get_services_keyboard())
@@ -31,10 +31,7 @@ async def start_booking(message: Message, state: FSMContext):
 async def cancel_booking(call: CallbackQuery, state: FSMContext):
     await state.clear()
     await call.message.delete()
-    await call.message.answer(
-        "Запись отменена. Чем могу помочь?",
-        reply_markup=get_main_keyboard()
-    )
+    await call.message.answer("Запись отменена. Чем могу помочь?")
     await call.answer()
 
 # ── ШАГ 1: Выбор услуги ──────────────────────────────────────
@@ -122,8 +119,7 @@ async def process_name(message: Message, state: FSMContext, bot: Bot):
         f"👩 Мастер: {data['master']}\n"
         f"📅 Дата: {data['date']}\n"
         f"🕐 Время: {data['time']}\n\n"
-        f"Ждём вас! Напомним за 2 часа до визита 🔔",
-        reply_markup=get_main_keyboard()
+        f"Ждём вас! Напомним за 2 часа до визита 🔔"
     )
 
     # Уведомление владельцу

@@ -6,21 +6,12 @@ from db.database import is_known_user, register_user
 
 router = Router()
 
-MENU_BUTTONS = ["📅 Записаться", "💬 Задать вопрос", "📞 Контакты"]
-
-@router.message(F.text == "💬 Задать вопрос")
-async def ask_question_prompt(message: Message):
-    await message.answer("Задайте ваш вопрос — отвечу в течение нескольких секунд 🤖")
-
 @router.message(F.text & ~F.text.startswith("/"))
 async def handle_free_text(message: Message, state: FSMContext):
     """Перехватывает свободный текст и отправляет в Claude"""
     current_state = await state.get_state()
     if current_state is not None:
         return  # Если идёт процесс записи — не перехватывать
-
-    if message.text in MENU_BUTTONS:
-        return
 
     # Проверяем, знакомый ли клиент
     known = await is_known_user(message.from_user.id)
