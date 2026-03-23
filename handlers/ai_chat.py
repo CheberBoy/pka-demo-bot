@@ -21,6 +21,22 @@ async def handle_free_text(message: Message, state: FSMContext):
     if message.text in MENU_BUTTONS:
         return
 
+    # Загружаем историю диалога
+    data = await state.get_data()
+    history = data.get("chat_history", [])
+
+    # Добавляем новое сообщение пользователя
+    history.append({"role": "user", "content": message.text})
+
+    # Ограничиваем историю последними 20 сообщениями (10 пар)
+    if len(history) > 20:
+        history = history[-20:]
+
     await message.chat.do("typing")
-    response = await get_ai_response(message.text)
+    response = await get_ai_response(history)
+
+    # Добавляем ответ бота в историю
+    history.append({"role": "assistant", "content": response})
+    await state.update_data(chat_history=history)
+
     await message.answer(response)
