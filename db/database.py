@@ -19,6 +19,28 @@ async def init_db():
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                telegram_id INTEGER PRIMARY KEY,
+                first_seen TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        await db.commit()
+
+async def is_known_user(telegram_id: int) -> bool:
+    """Проверить, писал ли этот пользователь раньше"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute(
+            "SELECT 1 FROM users WHERE telegram_id = ?", (telegram_id,)
+        )
+        return await cursor.fetchone() is not None
+
+async def register_user(telegram_id: int):
+    """Запомнить нового пользователя"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT OR IGNORE INTO users (telegram_id) VALUES (?)", (telegram_id,)
+        )
         await db.commit()
 
 async def add_booking(client_name, client_id, service, master, date, time):
