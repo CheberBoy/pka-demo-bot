@@ -80,7 +80,7 @@ async def process_date(call: CallbackQuery, state: FSMContext):
 # ── ШАГ 4: Выбор времени ────────────────────────────────────
 @router.callback_query(BookingState.choosing_time, F.data.startswith("time:"))
 async def process_time(call: CallbackQuery, state: FSMContext):
-    time = call.data.split(":")[1]
+    time = call.data.split(":", 1)[1]
     await state.update_data(time=time)
     await state.set_state(BookingState.entering_name)
     data = await state.get_data()

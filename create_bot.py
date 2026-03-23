@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher
-from aiogram.fsm.storage.memory import MemoryStorage
 from config import BOT_TOKEN
+from utils.sqlite_storage import SQLiteStorage
 
 bot = Bot(token=BOT_TOKEN)
-storage = MemoryStorage()
+storage = SQLiteStorage()
 dp = Dispatcher(storage=storage)
