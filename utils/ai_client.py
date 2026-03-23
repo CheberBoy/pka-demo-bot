@@ -1,3 +1,4 @@
+import logging
 from anthropic import AsyncAnthropic
 from config import ANTHROPIC_API_KEY, SYSTEM_PROMPT, SALON_PHONE
 
@@ -16,4 +17,5 @@ async def get_ai_response(user_message: str) -> str:
         )
         return response.content[0].text
     except Exception as e:
+        logging.error(f"Claude API error: {e}")
         return "Извините, ИИ временно недоступен. Позвоните нам: " + SALON_PHONE
