@@ -3,3 +3,4 @@ anthropic>=0.40.0
 aiosqlite==0.20.0
 APScheduler==3.10.4
 python-decouple==3.8
+faster-whisper==1.0.3
