@@ -22,6 +22,7 @@ class BookingState(StatesGroup):
 
 # ── ВХОД В ЗАПИСЬ ────────────────────────────────────────────
 @router.message(Command("book"))
+@router.message(F.text == "📅 Записаться")
 async def start_booking(message: Message, state: FSMContext):
     await state.set_state(BookingState.choosing_service)
     await message.answer("Выберите услугу:", reply_markup=get_services_keyboard())
@@ -37,7 +38,15 @@ async def cancel_booking(call: CallbackQuery, state: FSMContext):
 # ── ШАГ 1: Выбор услуги ──────────────────────────────────────
 @router.callback_query(BookingState.choosing_service, F.data.startswith("service:"))
 async def process_service(call: CallbackQuery, state: FSMContext):
-    service = call.data.split(":")[1]
+    try:
+        idx = int(call.data.split(":")[1])
+        from config import SERVICES
+        service_names = list(SERVICES.keys())
+        service = service_names[idx]
+    except (IndexError, ValueError):
+        await call.answer("Ошибка: услуга не найдена.")
+        return
+        
     await state.update_data(service=service)
     await state.set_state(BookingState.choosing_master)
     await call.message.edit_text(

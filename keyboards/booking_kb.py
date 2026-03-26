@@ -3,10 +3,12 @@ from config import SERVICES, MASTERS, TIME_SLOTS
 
 def get_services_keyboard():
     buttons = []
-    for service, price in SERVICES.items():
+    # Use index to avoid 64-byte Telegram limit for callback_data
+    for idx, (service, price) in enumerate(SERVICES.items()):
+        price_str = price if isinstance(price, str) else f"{price} сом"
         buttons.append([InlineKeyboardButton(
-            text=f"{service} — {price} сом",
-            callback_data=f"service:{service}"
+            text=f"{service} — {price_str}",
+            callback_data=f"service:{idx}"
         )])
     buttons.append([InlineKeyboardButton(text="❌ Отмена", callback_data="cancel")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
