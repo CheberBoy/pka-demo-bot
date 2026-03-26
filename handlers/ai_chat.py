@@ -9,6 +9,9 @@ from aiogram.fsm.context import FSMContext
 from pathlib import Path
 import sqlite3
 
+from utils.ai_client import get_ai_response
+from db.database import is_known_user, register_user
+
 router = Router()
 logger = logging.getLogger(__name__)
 
@@ -212,10 +215,24 @@ async def handle_message_with_db(message: types.Message, state: FSMContext):
                 answer = "К сожалению, я не могу получить информацию о расписании."
                 source = "error"
         
-        # STEP 5: Default - suggest booking
+        # STEP 5: Default - ask Claude AI
         else:
-            answer = "Спасибо за вопрос! 😊\n\nЯ помогу вам:\n✅ Узнать цены услуг\n✅ Найти нужного мастера\n✅ Записаться на процедуру\n\nСпросите меня про интересующую вас услугу!"
-            source = "default"
+            known = await is_known_user(user_id)
+            if not known:
+                await register_user(user_id)
+
+            data = await state.get_data()
+            history = data.get("chat_history", [])
+            history.append({"role": "user", "content": user_text})
+            if len(history) > 20:
+                history = history[-20:]
+
+            await message.chat.do("typing")
+            answer = await get_ai_response(history, is_new_user=not known)
+
+            history.append({"role": "assistant", "content": answer})
+            await state.update_data(chat_history=history)
+            source = "claude"
         
         # Send answer
         await message.answer(answer)
