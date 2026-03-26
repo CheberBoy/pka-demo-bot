@@ -4,7 +4,7 @@ Enhanced AI Chat Handler with Database Search Integration
 """
 
 import logging
-from aiogram import Router, types
+from aiogram import Router, types, F
 from aiogram.fsm.context import FSMContext
 from pathlib import Path
 import sqlite3
@@ -149,6 +149,42 @@ class SalonDatabaseSearch:
 # Initialize search
 db_search = SalonDatabaseSearch(str(DB_PATH))
 
+@router.message(F.voice)
+async def handle_voice(message: types.Message, state: FSMContext):
+    """Голосовое сообщение: расшифровать и передать в AI."""
+    current_state = await state.get_state()
+    if current_state is not None:
+        return
+
+    await message.chat.do("typing")
+
+    import os
+    import tempfile
+    from utils.voice_processor import transcribe_audio
+    from create_bot import bot
+
+    voice_file = await bot.get_file(message.voice.file_id)
+    tmp = tempfile.NamedTemporaryFile(suffix=".ogg", delete=False)
+    tmp_path = tmp.name
+    tmp.close()
+
+    try:
+        await bot.download_file(voice_file.file_path, tmp_path)
+        text = transcribe_audio(tmp_path)
+    finally:
+        os.unlink(tmp_path)
+
+    if text.startswith("["):
+        await message.answer("Не смог разобрать голосовое 😔 Попробуйте написать текстом.")
+        return
+
+    await message.answer(f"🎤 Вы сказали: _{text}_", parse_mode="Markdown")
+    
+    # Store the transcribed text inside the message object and pass it to DB handler
+    message.override_text = text
+    await handle_message_with_db(message, state)
+
+
 @router.message()
 async def handle_message_with_db(message: types.Message, state: FSMContext):
     """
@@ -157,7 +193,8 @@ async def handle_message_with_db(message: types.Message, state: FSMContext):
     
     try:
         user_id = message.from_user.id
-        user_text = message.text.strip()
+        user_text = getattr(message, 'override_text', message.text)
+        user_text = (user_text or message.caption or "").strip()
         
         logger.info(f"User {user_id}: {user_text}")
         
