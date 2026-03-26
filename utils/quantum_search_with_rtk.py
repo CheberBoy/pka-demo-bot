@@ -14,7 +14,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Tuple
-from quantum_search import QuantumSearch
+from utils.quantum_search import QuantumSearch
 
 
 class QuantumSearchWithRTK:
