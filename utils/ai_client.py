@@ -11,7 +11,7 @@ async def get_ai_response(messages: list, is_new_user: bool = True) -> str:
         system += "\nВАЖНО: Это уже знакомый клиент — не здоровайся, сразу отвечай по существу."
     try:
         response = await client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model="claude-3-5-haiku-latest",
             max_tokens=512,
             system=system,
             messages=messages
